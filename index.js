@@ -272,7 +272,7 @@ bot.hear(/exch (.*)/i, (payload, chat, data) => {
       }
     }else {
       conversation.say('Please devide by "," from and to curency  "search [exch from curency symbol,to curency symbol]"', {typing: true});
-     he conversation.end();
+      conversation.end();
     }
 // vse je formálně ok
     console.log('&from_currency=' + fromCur +'&to_currency=' + toCur );
