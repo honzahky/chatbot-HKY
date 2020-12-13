@@ -121,27 +121,33 @@ function handlePlot0(conversation, json, shareSymbol) {
       //console.log('payload ' + payload)
       console.log("výběr = " +JSON.stringify(payload));
       //console.log('payload.message' + payload.message)
+      try {
+          vybrano = payload.postback.payload
+          console.log("vybráno = " + vybrano)
+    
+        if (vybrano === 'Dividend') {
+          console.log('Dividend')
+          conversation.say('Dividend per share ' + shareSymbol + ' is ' + json.DividendPerShare, {typing: true});
+          conversation.say('Share '+ shareSymbol +' Divident Date is ' + json.DividendDate, {typing: true});
+    //      setTimeout(handlePlot0(conversation, json, shareSymbol), 5000);
+          handlePlot0(conversation, json, shareSymbol)
+        } else if (vybrano === 'Earnings') {
+          console.log('Earnings')
+          earnings(conversation, json, shareSymbol)
+        // setTimeout(handlePlot0(conversation, json, shareSymbol),20000) // Nefinguje nečaká
+        } else if (vybrano === 'Cancel') {
+          conversation.say("Ok, ask me about a different share then.", {typing: true});
+          conversation.say('you can also find out the exchange rate - from to currency" - type [exch currency symbol,currency symbol]"', {typing: true});
+          conversation.end();
+        } else {
+          console.log(`No, ${vybrano} isn't one of the TMNT.`)
+        }  
+      } catch (error) {
+          conversation.say("You did not klick on any botton, ask me about a different share then.", {typing: true});
+          conversation.say('you can also find out the exchange rate - from to currency" - type [exch currency symbol,currency symbol]"', {typing: true});
+          conversation.end();
+      }
       
-      vybrano = payload.postback.payload
-      console.log("vybráno = " + vybrano)
-
-    if (vybrano === 'Dividend') {
-      console.log('Dividend')
-      conversation.say('Dividend per share ' + shareSymbol + ' is ' + json.DividendPerShare, {typing: true});
-      conversation.say('Share '+ shareSymbol +' Divident Date is ' + json.DividendDate, {typing: true});
-//      setTimeout(handlePlot0(conversation, json, shareSymbol), 5000);
-      handlePlot0(conversation, json, shareSymbol)
-    } else if (vybrano === 'Earnings') {
-      console.log('Earnings')
-      earnings(conversation, json, shareSymbol)
-     // setTimeout(handlePlot0(conversation, json, shareSymbol),20000) // Nefinguje nečaká
-    } else if (vybrano === 'Cancel') {
-      conversation.say("Ok, ask me about a different share then.", {typing: true});
-      conversation.say('you can also find out the exchange rate - from to currency"search [exch currency symbol,currency symbol]"', {typing: true});
-      conversation.end();
-    } else {
-      console.log(`No, ${vybrano} isn't one of the TMNT.`)
-    }
     });
   }, 3000)
 }
@@ -157,7 +163,7 @@ function earnings(conversation, json, shareSymbol){
       
           if (Object.keys(json).length === 0 && json.constructor === Object){
             conversation.say('I could not find the share symbol '+shareSymbol+', you can try searching - type "share [symbol of the share]"', {typing: true});
-            conversation.say('you can also find out the exchange rate - from to currency"search [exch currency symbol,currency symbol]"', {typing: true});
+            conversation.say('you can also find out the exchange rate - from to currency" - type [exch currency symbol,currency symbol]"', {typing: true});
             conversation.end();
         } else {
           earnings2(conversation, json, shareSymbol);
@@ -271,13 +277,13 @@ bot.hear(/exch (.*)/i, (payload, chat, data) => {
         }
       }
     }else {
-      conversation.say('Please devide by "," from and to curency  "search [exch from curency symbol,to curency symbol]"', {typing: true});
+      conversation.say('Please devide by "," from and to curency  - type "[exch from curency symbol,to curency symbol]"', {typing: true});
       conversation.end();
     }
 // vse je formálně ok
     console.log('&from_currency=' + fromCur +'&to_currency=' + toCur );
     
-    try { // nefunguje odchytávání chyby
+    try { 
       fetch(SHARE_API+'&function=CURRENCY_EXCHANGE_RATE&from_currency=' + fromCur +'&to_currency=' + toCur)
       // CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=JPY&apikey=demo
          .then(res => res.json())
@@ -286,7 +292,7 @@ bot.hear(/exch (.*)/i, (payload, chat, data) => {
            console.log("json :"+Object.keys(json).length )
          
              if (Object.keys(json).length === 0 && json.constructor === Object){
-              conversation.say('Please devide by "," from and to curency  "search [exch from curency symbol,to curency symbol]"', {typing: true});
+              conversation.say('Please devide by "," from and to curency  - type "[exch from curency symbol,to curency symbol]"', {typing: true});
               conversation.end();
            } else {
            temp = JSON.stringify(json)
@@ -322,7 +328,8 @@ bot.hear(/exch (.*)/i, (payload, chat, data) => {
            }  
           });    
     } catch (error) {
-      conversation.say('Please devide by "," from and to currency  "search [exch from curency symbol,to curency symbol]"', {typing: true});
+      console.log(error)
+      conversation.say('Please devide by "," from and to currency  - type "[exch from curency symbol,to curency symbol]"', {typing: true});
       conversation.end();
     }
 
